@@ -8,10 +8,12 @@ docker pull ursweiss/prometheus-alpine-arm32v7
 
 ## Run
 Three volumes are used to store persistent data:
-* Database & Config (prometheus-storage)
+* Database (prometheus-storage)
+* Config (prometheus-etc)
 
 ```sh
 docker volume create prometheus-storage
+docker volume create prometheus-etc
 ```
 
 Run the container:
@@ -22,5 +24,6 @@ docker run \
   -p 9090:9090 \
   --name=prometheus \
   --mount type=volume,src=prometheus-storage,dst=/prometheus,volume-driver=local \
+  --mount type=volume,src=prometheus-etc,dst=/etc/prometheus,volume-driver=local,readonly \
   ursweiss/prometheus-alpine-marm32v7
 ```
