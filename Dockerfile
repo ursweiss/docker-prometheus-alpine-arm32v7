@@ -20,6 +20,7 @@ RUN set -ex; \
     tar --strip-components=1 -xzf prometheus.tar.gz; \
     echo "*** Move all files into place **"; \
     mkdir -p /usr/share/prometheus /etc/prometheus /prometheus; \
+    mv prometheus.yml /etc/prometheus/ ; \
     mv prometheus promtool /bin/; \
     mv console_libraries consoles /usr/share/prometheus/; \
     ln -s /usr/share/prometheus/console_libraries /usr/share/prometheus/consoles/ /etc/prometheus/; \
