@@ -14,17 +14,21 @@ RUN set -ex; \
     apk upgrade --no-cache; \
     echo "*** Install required packages ***"; \
     apk add --no-cache \
-        curl; \
+        curl \
+        su-exec; \
     echo "*** Get precompuled prometheus binary ***"; \
     curl --location --output prometheus.tar.gz  https://github.com/prometheus/prometheus/releases/download/v${PROM_VERSION}/prometheus-${PROM_VERSION}.${PROM_SYSTEM}-${PROM_ARCH}.tar.gz; \
     tar --strip-components=1 -xzf prometheus.tar.gz; \
     echo "*** Move all files into place **"; \
     mkdir -p /usr/share/prometheus /etc/prometheus /prometheus; \
-    mv prometheus.yml /etc/prometheus/ ; \
+    mv prometheus.yml /etc/prometheus/; \
     mv prometheus promtool /bin/; \
     mv console_libraries consoles /usr/share/prometheus/; \
     ln -s /usr/share/prometheus/console_libraries /usr/share/prometheus/consoles/ /etc/prometheus/; \
-    chown -R nobody:nogroup /etc/prometheus /prometheus; \
+    echo "*** Add service group and user ***"; \
+    addgroup -S prometheus; \
+    adduser -S -D -h /home/prometheus -s /bin/false -G prometheus prometheus; \
+    chown -R prometheus:prometheus /prometheus; \
     echo "*** Cleanup ***"; \
     apk del \
         curl \
@@ -33,11 +37,12 @@ RUN set -ex; \
     rm -rf /var/cache/apk/*; \
     rm -rf /tmp/prom
 
-USER        nobody
+COPY files /
+
 EXPOSE      9090
 VOLUME      [ "/prometheus" ]
 WORKDIR     /prometheus
-ENTRYPOINT  [ "/bin/prometheus" ]
+ENTRYPOINT  [ "entrypoint.sh" ]
 CMD         [ "--config.file=/etc/prometheus/prometheus.yml", \
               "--storage.tsdb.path=/prometheus", \
               "--web.console.libraries=/usr/share/prometheus/console_libraries", \
